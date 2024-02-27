@@ -1,0 +1,159 @@
+--1. Create a database named Customers.
+CREATE DATABASE CUSTOMERS;
+
+--2. 1. Retrieves people whose names start with the letter 'A' from the Customers table.
+
+SELECT *
+FROM CUSTOMERS
+WHERE NAMESURNAME LIKE 'A%';
+
+--3.Find customers born between 1990 and 1995 (1990 and 1995 are included).
+
+SELECT * 
+FROM CUSTOMERS 
+WHERE YEAR(BIRTHDATE)>=1990 AND YEAR(BIRTHDATE)<=1995
+
+--4. Find people living in Istanbul
+
+SELECT U.NAMESURNAME
+,C.CITY
+FROM CUSTOMERS U
+	JOIN CITY C
+    ON C.CITYID = U.ID
+WHERE C.CITY = 'Istanbul' 
+
+--5. Returns information about how many customers we have in which city. 
+
+SELECT COUNT(C.ID)
+,I.CITY
+FROM CUSTOMERS C
+     LEFT JOIN  CITY I
+     ON C.ID = I.CITYID
+GROUP BY I.CITY
+
+--6. List the cities where we have more than 10 customers, in order from most to least, according to the number of customers.
+
+SELECT I.CITY 
+,COUNT(C.NAMESURNAME)
+FROM CITY I
+     JOIN CUSTOMERS C
+     ON I.CITYID = C.ID
+HAVING COUNT(NAMESURNAME) > 10
+ORDER BY 2 DESC
+
+--7. Provides information on how many male and female customers we have in which city.
+
+SELECT I.CITY
+,C.GENDER
+,COUNT(*)
+FROM CUSTOMERS C
+     JOIN CITY I
+     ON C.ID = I.CITYID
+GROUP BY I.CITY, C.GENDER
+ORDER BY 2,3
+
+--8. Add a new field for the age group to the Customers table.( Field name AGEGROUP datatype Varchar(50))
+INSEERT TABLE CUSTOMERS
+ALTER TABLE CUSTOMERS 
+ADD AGEGROUP VARCHAR(50)
+
+--9. Update the AGEGROUP field you added to the Customers table as 20-35 years old, 36-45 years old, 46-55 years old, 55-65 years old and over 65 years old.
+
+SELECT *
+,DATEDIFF(YEAR,BIRTHDATE,GETDATE()) 
+FROM CUSTOMERS 
+UPDATE CUSTOMERS 
+SET AGEGROUP='20-35 AGE'
+WHERE DATEDIFF(YEAR,BIRTHDATE,GETDATE()) BETWEEN 20 AND 35 
+UPDATE CUSTOMERS
+SET AGEGROUP='36-45 AGE'
+WHERE DATEDIFF(YEAR,BIRTHDATE,GETDATE()) BETWEEN 36 AND 45 
+UPDATE CUSTOMERS 
+SET AGEGROUP='46-55 AGE'
+WHERE DATEDIFF(YEAR,BIRTHDATE,GETDATE()) BETWEEN 46 AND 55 
+UPDATE CUSTOMERS 
+SET AGEGROUP='55-65 AGE'
+WHERE DATEDIFF(YEAR,BIRTHDATE,GETDATE()) BETWEEN 56 AND 65 
+UPDATE CUSTOMERS SET AGEGROUP='OVER 65'
+WHERE DATEDIFF(YEAR,BIRTHDATE,GETDATE())>65 
+
+--10. List those who live in Istanbul and whose district is outside 'Kadıköy'
+
+SELECT NAMESURNAME
+FROM CUSTOMERS C
+     JOIN CITY I
+     ON C.ID = I.CITYID
+     JOIN DISTRICT D
+     ON D.ID = C.DISTRINCTID
+WHERE I.CITY = "ISTANBUL" AND D.TOWN <> "KADIKOY" 
+
+--11. Bring the operator information of our customers phone numbers. next to the TELNR1 and TELNR2 fields. (We want to bring the operator number like (532),(505))
+
+SELECT *
+,SUBSTRING(TELNR1, 1, 5) AS OPERATOR1
+,SUBSTRING(TELNR2, 1, 5) AS OPERATOR2
+FROM CUSTOMERS
+
+--12. We want to bring the operator information of our customers phone numbers. For example, phone numbers are “50”
+or "X" operator starting with "55", "Y" operator starting with "54", and "Z" operator starting with "53".
+Here, write the query that will provide information about how many customers we have from which operator.
+
+SELECT SUM(X_OPERATOR + X_OPERATOR2) AS XOPERATORCOUNT
+,SUM(Y_OPERATOR + Y_OPERATOR2) AS YOPERATORCOUNT
+,SUM(Z_OPERATOR + Z_OPERATOR2) AS ZOPERATORCOUNT
+FROM (
+SELECT *
+,CASE 
+	WHEN TELNR1 LIKE "50%" OR TELNR1 LIKE "55%" THEN 1 
+    ELSE 0
+    END AS X_OPERATOR
+,CASE 
+	WHEN TELNR2 LIKE "50%" OR TELNR1 LIKE "55%" THEN 1 
+    ELSE 0
+    END AS X_OPERATOR2    
+,CASE
+	WHEN TELNR1 LIKE "54%" THEN 1
+	ELSE 0
+	END AS Y_OPERATOR
+,CASE
+	WHEN TELNR2 LIKE "54%" THEN 1
+	ELSE 0
+	END AS Y_OPERATOR2    
+,CASE
+     WHEN TELNR1 LIKE "53%" THEN 1
+     ELSE 0
+     END AS Z_OPERATOR
+,CASE
+     WHEN TELNR2 LIKE "53%" THEN 1
+     ELSE 0
+     END AS Z_OPERATOR2
+ 
+ FROM CUSTOMERS
+)
+
+--13. Write the query required to bring up the districts where we have the most customers in each province, in order from highest to lowest according to the number of customers, as shown in the figure.
+
+SELECT C.COUNT(*)
+,D.DISTRICT
+,CI.CITY
+FROM CUSTOMERS C
+     JOIN DISTRICT D
+     ON C.DISTRICTID = D.ID
+     JOIN CITIES CI
+     ON C.CITYID = CI.ID
+GROUP BY D.DISTRICT
+,CI.CITY
+ORDER BY 1 DESC     
+
+--14. Write a query that returns the customers birthdays as the day of the week (Monday, Tuesday, Wednesday...)
+
+SELECT CUSTOMERNAME
+, DATENAME(DW, BIRTDATE)
+FROM CUSTOMERS
+
+
+
+
+
+
+
